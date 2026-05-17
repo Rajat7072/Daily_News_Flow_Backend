@@ -1,0 +1,10 @@
+node_modules/
+.vs/
+.env
+
+dist/
+bin/
+obj/
+*.log
+node_modules/ node_modules/
+node_modules/
