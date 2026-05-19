@@ -22,31 +22,13 @@ cloudinary.config({
 
 app.use(express.json());
 
-app.use((req, res, next) => {
-  const allowedOrigins = [
-    "https://www.dailynewsflow.com",
-    "https://dailynewsflow.com",
-  ];
-  const origin = req.headers.origin;
-  console.log("origin", origin);
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(200); // respond to preflight
-    }
-    next();
-  } else {
-    return res.status(403).send("UnAuthorised Access");
-  }
-});
-
-// app.use(
-//   cors({
-//     origin: [process.env.ALLOWED_URL, process.env.ALLOWED_URL_2],
-//   }),
-// );
+app.use(
+  cors({
+    origin: ["https://dailynewsflow.com", "https://www.dailynewsflow.com"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    credentials: true,
+  }),
+);
 
 app.use("/newsapi", ExtractArticleRoute);
 app.use("/newsapi", UploadImageRoute);
