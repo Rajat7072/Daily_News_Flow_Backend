@@ -48,11 +48,11 @@ app.use((req, res, next) => {
 //   }),
 // );
 
-app.use("/api", ExtractArticleRoute);
-app.use("/api", UploadImageRoute);
-app.use("/api", ArticleRoute);
-app.use("/api", GetLatestNewsRoute);
-app.use("/api", ContactUsRoute);
+app.use("/newsapi", ExtractArticleRoute);
+app.use("/newsapi", UploadImageRoute);
+app.use("/newsapi", ArticleRoute);
+app.use("/newsapi", GetLatestNewsRoute);
+app.use("/newsapi", ContactUsRoute);
 
 app.use("/health", (req, res) => {
   res.status(200).send({ success: true, health: "success" });
