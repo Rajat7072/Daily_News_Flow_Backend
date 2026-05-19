@@ -23,7 +23,10 @@ cloudinary.config({
 app.use(express.json());
 
 app.use((req, res, next) => {
-  const allowedOrigins = [process.env.ALLOWED_URL, process.env.ALLOWED_URL_2];
+  const allowedOrigins = [
+    "https://www.dailynewsflow.com",
+    "https://dailynewsflow.com",
+  ];
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.header("Access-Control-Allow-Origin", origin);
