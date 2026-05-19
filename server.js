@@ -24,7 +24,7 @@ app.use(cors());
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.ALLOWED_URL,
+    origin: [process.env.ALLOWED_URL, process.env.ALLOWED_URL_2],
   }),
 );
 
