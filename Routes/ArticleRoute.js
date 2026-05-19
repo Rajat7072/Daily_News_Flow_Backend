@@ -99,6 +99,7 @@ router.get(
       .withMessage("Please Enter the valid Heading to Search"),
   ],
   async (req, res) => {
+    console.log("Req", req.headers.origin);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
