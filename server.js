@@ -9,6 +9,7 @@ const UploadImageRoute = require("./Routes/UploadImageRoute");
 const ArticleRoute = require("./Routes/ArticleRoute");
 const GetLatestNewsRoute = require("./Routes/GetLatestNewsRoute");
 const ContactUsRoute = require("./Routes/ContactUsRoute");
+const NewsCount = require("./Routes/NewsCountRoute");
 
 const host = process.env.DB_HOST;
 const port = process.env.DB_PORT;
@@ -35,6 +36,7 @@ app.use("/newsapi", UploadImageRoute);
 app.use("/newsapi", ArticleRoute);
 app.use("/newsapi", GetLatestNewsRoute);
 app.use("/newsapi", ContactUsRoute);
+app.use("/newsapi", NewsCount);
 
 app.use("/health", (req, res) => {
   res.status(200).send({ success: true, health: "success" });
