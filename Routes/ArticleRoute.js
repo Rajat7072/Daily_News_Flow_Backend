@@ -114,7 +114,10 @@ router.get(
         filter = { heading };
       }
 
-      const articles = await ArticleSchema.find(filter).skip(skip).limit(limit);
+      const articles = await ArticleSchema.find(filter)
+        .skip(skip)
+        .limit(limit)
+        .sort({ _id: -1 });
       res.status(200).json({ success: true, articles: articles });
     } catch (err) {
       res.status(500).json({ error: "Server error" });
