@@ -18,6 +18,7 @@ const llm = async (prompt) => {
       temperature: 0.7,
       stream: false,
       top_p: 0.9,
+      response_format: { type: "json_object" },
       max_tokens: 2048,
     });
     return response.choices[0].message.content;

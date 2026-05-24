@@ -62,15 +62,12 @@ const articleValidationRules = [
 
 router.post("/article", articleValidationRules, async (req, res) => {
   const errors = validationResult(req);
-
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
   try {
     const response = await ArticleSchema.create(req.body);
-    return res
-      .status(200)
-      .send({ success: true, msg: "Article Saved Successfully" });
+    return res.status(200).send(response);
   } catch (error) {
     res.status(500).json({ error: "Server error" });
   }
@@ -145,15 +142,15 @@ router.put("/article", articleValidationRules, async (req, res) => {
 });
 router.delete("/article", async (req, res) => {
   try {
+    const { params } = req.body;
     const response = await ArticleSchema.findOneAndDelete({
-      heading: req.body.heading,
+      heading: params,
     });
     if (!response) {
       return res.status(404).json({ success: false, msg: "Article not found" });
     }
-    res
-      .status(200)
-      .json({ success: true, msg: "Article deleted successfully" });
+    response.msg = "Article Deleted Successfully";
+    res.status(200).json(response);
   } catch (error) {
     res
       .status(500)

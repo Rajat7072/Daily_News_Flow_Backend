@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios");
 const { body, validationResult } = require("express-validator");
 const { Readability } = require("@mozilla/readability");
 const { JSDOM, VirtualConsole } = require("jsdom");
@@ -19,12 +20,18 @@ const getDate = () => {
   const formattedDate = `${day}-${month}-${year}`;
   return formattedDate;
 };
+const callArticleSaveApi = async (extractArticleResponse) => {
+  const response = await axios.post(
+    "http://localhost:8089/newsapi/article",
+    extractArticleResponse,
+  );
+  return response;
+};
 router.post(
   "/extractArticle",
   [body("url", "Please enter a valid URL").isURL()],
   async (req, res) => {
     const errors = validationResult(req);
-
     if (!errors.isEmpty()) {
       return res.status(400).json({
         success: false,
@@ -36,7 +43,6 @@ router.post(
 
     try {
       const { url, Imgurl } = req.body;
-
       browser = await puppeteer.launch({
         headless: true,
         args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -72,7 +78,8 @@ router.post(
       };
       const llm_prompt = `${extractArticlePrompt()}ARTICLE DATA:${JSON.stringify(cleanedArticle, null, 2)}`;
 
-      const response = JSON.parse(await llm(llm_prompt));
+      let response = await llm(llm_prompt);
+      response = typeof response === "string" ? JSON.parse(response) : response;
       if (Imgurl) {
         response.image = Imgurl;
       } else {
@@ -86,10 +93,11 @@ router.post(
         response.image = uploadedImage.secure_url;
       }
       response.publishedDate = getDate();
-
-      return res.json({
+      const savedArticle = await callArticleSaveApi(response);
+      return res.status(200).send({
         success: true,
-        response,
+        msg: "Article Saved Successfully",
+        response: savedArticle.data.category,
       });
     } catch (error) {
       res.status(500).json({
