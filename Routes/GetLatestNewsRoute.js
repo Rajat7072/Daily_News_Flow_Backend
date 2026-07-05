@@ -99,15 +99,15 @@ router.delete("/getLatestNews", async (req, res) => {
 });
 router.get("/getLatestNews", async (req, res) => {
   try {
-    console.log("[getLatestNews] GET request received");
+    // console.log("[getLatestNews] GET request received");
     await GetLatestNewsSchema.deleteMany({});
-    console.log("[getLatestNews] Cleared old records");
+    // console.log("[getLatestNews] Cleared old records");
 
     const llm_prompt = getLatestNewsPrompt();
-    console.log("[getLatestNews] LLM prompt generated");
+    // console.log("[getLatestNews] LLM prompt generated");
 
     const llmResponse = await llm(llm_prompt);
-    console.log("[getLatestNews] LLM response received", llmResponse);
+    // console.log("[getLatestNews] LLM response received", llmResponse);
 
     let response;
     try {
@@ -146,12 +146,12 @@ router.get("/getLatestNews", async (req, res) => {
       });
     }
 
-    console.log("[getLatestNews] Parsed response", normalizedNews);
+    // console.log("[getLatestNews] Parsed response", normalizedNews);
 
     const saveLatestNews = await GetLatestNewsSchema.create({
       news_headlines: normalizedNews,
     });
-    console.log("[getLatestNews] Saved to DB", saveLatestNews);
+    // console.log("[getLatestNews] Saved to DB", saveLatestNews);
 
     return res
       .status(200)
@@ -167,8 +167,8 @@ router.get("/getLatestNews", async (req, res) => {
 
 router.post("/getLatestNews", async (req, res) => {
   try {
-    console.log("[getLatestNews] POST request received");
-    console.log("[getLatestNews] Request body", req.body);
+    // console.log("[getLatestNews] POST request received");
+    // console.log("[getLatestNews] Request body", req.body);
 
     const normalizedNews = normalizeNewsItems(req.body);
     if (!normalizedNews || normalizedNews.length === 0) {
@@ -179,12 +179,12 @@ router.post("/getLatestNews", async (req, res) => {
     }
 
     await GetLatestNewsSchema.deleteMany({});
-    console.log("[getLatestNews] Cleared old post records");
+    // console.log("[getLatestNews] Cleared old post records");
 
     const saveLatestNews = await GetLatestNewsSchema.create({
       news_headlines: normalizedNews,
     });
-    console.log("[getLatestNews] Saved POST payload to DB", saveLatestNews);
+    // console.log("[getLatestNews] Saved POST payload to DB", saveLatestNews);
 
     return res
       .status(200)
@@ -200,9 +200,9 @@ router.post("/getLatestNews", async (req, res) => {
 
 router.get("/getNewsUpdates", async (req, res) => {
   try {
-    console.log("[getNewsUpdates] Fetch request received");
+    // console.log("[getNewsUpdates] Fetch request received");
     const response = await GetLatestNewsSchema.find({});
-    console.log("[getNewsUpdates] DB response", response);
+    // console.log("[getNewsUpdates] DB response", response);
 
     return res.status(200).send({
       success: true,
