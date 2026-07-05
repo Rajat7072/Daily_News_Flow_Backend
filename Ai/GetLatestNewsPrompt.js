@@ -11,7 +11,8 @@ Requirements:
 - Each news item should be concise, around 3–4 lines maximum.
 - Focus on major national and international news.
 - Avoid duplicate stories.
-- Output format must be a valid JavaScript array of strings only.
+- Return ONLY a valid JSON array of strings.
+- Do not include commentary, markdown, code fences, or explanation.
 
 FORMAT:
 [

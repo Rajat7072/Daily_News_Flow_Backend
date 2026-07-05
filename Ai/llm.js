@@ -18,12 +18,22 @@ const llm = async (prompt) => {
       temperature: 0.7,
       stream: false,
       top_p: 0.9,
-      response_format: { type: "json_object" },
       max_tokens: 2048,
     });
-    return response.choices[0].message.content;
+
+    const content = response?.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error("Empty response from Groq");
+    }
+
+    return content;
   } catch (error) {
-    return { success: false, msg: "Some Error Occured", error };
+    console.error("[llm] Groq request failed", error);
+    return JSON.stringify({
+      success: false,
+      msg: "Some Error Occured",
+      error: error?.message || String(error),
+    });
   }
 };
 module.exports = llm;
