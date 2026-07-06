@@ -161,7 +161,7 @@ router.post(
         response.image = Imgurl;
       } else {
         const imageBuffer = await generateImage(response.imagePrompt);
-        console.log("Buffer", imageBuffer);
+        //console.log("Buffer", imageBuffer);
         if (!imageBuffer) {
           throw new Error("Failed to generate image from AI service");
         }
@@ -173,14 +173,14 @@ router.post(
       response.publishedDate = getDate();
 
       const savedArticle = await callArticleSaveApi(response);
-      console.log("Saved", savedArticle);
+      //console.log("Saved", savedArticle);
       return res.status(200).json({
         success: true,
         msg: "Article Saved Successfully",
         response: savedArticle.data.category,
       });
     } catch (error) {
-      console.log("This Error", error);
+      //console.log("This Error", error);
       return res.status(500).json({
         success: false,
         error: error.message,
