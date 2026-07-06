@@ -10,6 +10,7 @@ const ArticleRoute = require("./Routes/ArticleRoute");
 const GetLatestNewsRoute = require("./Routes/GetLatestNewsRoute");
 const ContactUsRoute = require("./Routes/ContactUsRoute");
 const NewsCount = require("./Routes/NewsCountRoute");
+//const InstagramRoute = require("./Routes/InstagramRoute");
 
 const host = process.env.DB_HOST;
 const port = process.env.DB_PORT;
@@ -25,11 +26,19 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: ["https://dailynewsflow.com", "https://www.dailynewsflow.com"],
+    origin: [
+      "https://dailynewsflow.com",
+      "https://www.dailynewsflow.com",
+      process.env.ALLOWED_URL,
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+
+// Handle preflight requests
+app.options("*", cors());
 
 app.use("/newsapi", ExtractArticleRoute);
 app.use("/newsapi", UploadImageRoute);
@@ -37,6 +46,7 @@ app.use("/newsapi", ArticleRoute);
 app.use("/newsapi", GetLatestNewsRoute);
 app.use("/newsapi", ContactUsRoute);
 app.use("/newsapi", NewsCount);
+//app.use("/newsapi", InstagramRoute);
 
 app.use("/health", (req, res) => {
   res.status(200).send({ success: true, health: "success" });
