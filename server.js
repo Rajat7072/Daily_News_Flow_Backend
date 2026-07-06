@@ -37,9 +37,6 @@ app.use(
   }),
 );
 
-// Handle preflight requests
-app.options("*", cors());
-
 app.use("/newsapi", ExtractArticleRoute);
 app.use("/newsapi", UploadImageRoute);
 app.use("/newsapi", ArticleRoute);
