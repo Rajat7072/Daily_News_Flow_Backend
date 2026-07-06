@@ -26,11 +26,20 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: [
-      "https://dailynewsflow.com",
-      "https://www.dailynewsflow.com",
-      process.env.ALLOWED_URL,
-    ],
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "https://dailynewsflow.com",
+        "https://www.dailynewsflow.com",
+        process.env.ALLOWED_URL,
+      ];
+
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
