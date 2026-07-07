@@ -1,5 +1,6 @@
 const express = require("express");
 const fs = require("fs");
+const { execSync } = require("child_process");
 const router = express.Router();
 const axios = require("axios");
 const { body, validationResult } = require("express-validator");
@@ -59,9 +60,35 @@ const getPuppeteerExecutablePath = () => {
   if (systemPath) return systemPath;
 
   try {
-    return puppeteer.executablePath();
+    const puppeteerPath = puppeteer.executablePath();
+    if (puppeteerPath && fs.existsSync(puppeteerPath)) {
+      return puppeteerPath;
+    }
   } catch (error) {
-    return null;
+    console.warn("puppeteer.executablePath() unavailable:", error.message);
+  }
+
+  return null;
+};
+
+const logChromeStatus = () => {
+  const browserPath = getPuppeteerExecutablePath();
+  console.log("Detected browser executable:", browserPath || "none");
+  if (!browserPath && process.platform === "linux") {
+    try {
+      const chromePath = execSync(
+        "which google-chrome chromium chromium-browser chromium-browser-stable",
+        {
+          encoding: "utf8",
+          stdio: ["ignore", "pipe", "ignore"],
+        },
+      )
+        .split("\n")
+        .find(Boolean);
+      console.log("System chrome path found via which:", chromePath);
+    } catch {
+      console.log("No system Chrome/Chromium found on Linux via which.");
+    }
   }
 };
 
@@ -102,6 +129,8 @@ router.post(
 
     try {
       const { url, Imgurl } = req.body;
+
+      logChromeStatus();
 
       const browserExecutablePath = getPuppeteerExecutablePath();
 
