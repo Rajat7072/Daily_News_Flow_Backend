@@ -104,12 +104,25 @@ const getDate = () => {
 };
 
 const callArticleSaveApi = async (extractArticleResponse) => {
-  const response = await axios.post(
-    "http://localhost:8089/newsapi/article",
-    extractArticleResponse,
-  );
-
-  return response;
+  const url =
+    process.env.ARTICLE_SAVE_URL || "http://localhost:8089/newsapi/article";
+  try {
+    const response = await axios.post(url, extractArticleResponse, {
+      timeout: 15000,
+    });
+    return response;
+  } catch (err) {
+    logger.error("callArticleSaveApi failed", {
+      url,
+      message: err.message,
+      code: err.code,
+      responseStatus: err.response?.status,
+      responseData: err.response?.data,
+    });
+    throw new Error(
+      `Failed to save article: ${err.message || err.code || "unknown"}`,
+    );
+  }
 };
 
 router.post(
