@@ -54,6 +54,17 @@ const getBrowserExecutablePath = () => {
   return candidates.find((candidate) => candidate && fs.existsSync(candidate));
 };
 
+const getPuppeteerExecutablePath = () => {
+  const systemPath = getBrowserExecutablePath();
+  if (systemPath) return systemPath;
+
+  try {
+    return puppeteer.executablePath();
+  } catch (error) {
+    return null;
+  }
+};
+
 const getDate = () => {
   const now = new Date();
 
@@ -92,7 +103,7 @@ router.post(
     try {
       const { url, Imgurl } = req.body;
 
-      const browserExecutablePath = getBrowserExecutablePath();
+      const browserExecutablePath = getPuppeteerExecutablePath();
 
       const launchOptions = {
         headless: true,
