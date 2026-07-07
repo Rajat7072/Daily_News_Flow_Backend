@@ -129,10 +129,12 @@ router.post(
 
     try {
       const { url, Imgurl } = req.body;
+      console.log("extractArticle route start", { url, Imgurl });
 
       logChromeStatus();
 
       const browserExecutablePath = getPuppeteerExecutablePath();
+      console.log("browserExecutablePath resolved", browserExecutablePath);
 
       const launchOptions = {
         headless: true,
@@ -148,7 +150,11 @@ router.post(
         launchOptions.executablePath = browserExecutablePath;
       }
 
+      console.log("puppeteer launch options", {
+        executablePath: launchOptions.executablePath,
+      });
       browser = await puppeteer.launch(launchOptions);
+      console.log("puppeteer launched");
 
       const page = await browser.newPage();
 
@@ -173,6 +179,7 @@ router.post(
         waitUntil: "domcontentloaded",
         timeout: 60000,
       });
+      console.log("page.goto succeeded", { url });
 
       // Wait like human
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -200,6 +207,7 @@ router.post(
 
       // Get cleaned HTML
       const html = await page.content();
+      console.log("page content length", html.length);
 
       const virtualConsole = new VirtualConsole();
 
@@ -214,6 +222,11 @@ router.post(
       const reader = new Readability(dom.window.document);
 
       const article = reader.parse();
+      console.log("readability parse result", {
+        title: article?.title,
+        excerpt: article?.excerpt,
+        textLength: article?.textContent?.length,
+      });
 
       // Validation
       if (!article) {
@@ -231,8 +244,9 @@ router.post(
       const llm_prompt = `${extractArticlePrompt()}ARTICLE DATA:${JSON.stringify(cleanedArticle, null, 2)}`;
       // LLM
       let response = await llm(llm_prompt);
-
+      console.log("LLM raw response type", typeof response);
       if (typeof response === "string") {
+        console.log("LLM raw response length", response.length);
         const cleaned = response
           .replace(/^```(?:json)?\s*\n?/, "")
           .replace(/\n?```\s*$/, "")
@@ -240,7 +254,12 @@ router.post(
 
         try {
           response = JSON.parse(cleaned);
+          console.log("LLM parsed response keys", Object.keys(response || {}));
         } catch (parseError) {
+          console.error("LLM JSON parse failed", {
+            cleaned,
+            parseError: parseError.message,
+          });
           throw new Error(`LLM returned invalid JSON: ${parseError.message}`);
         }
       }
@@ -249,12 +268,18 @@ router.post(
       if (Imgurl) {
         response.image = Imgurl;
       } else {
+        console.log("generating image with prompt", response.imagePrompt);
         const imageBuffer = await generateImage(response.imagePrompt);
-        //console.log("Buffer", imageBuffer);
+        console.log("imageBuffer received", {
+          byteLength: imageBuffer?.byteLength,
+        });
         if (!imageBuffer) {
           throw new Error("Failed to generate image from AI service");
         }
         const uploadedImage = await uploadToCloudinary(imageBuffer);
+        console.log("cloudinary uploaded image", {
+          secure_url: uploadedImage?.secure_url,
+        });
         response.image = uploadedImage.secure_url;
       }
 
@@ -262,14 +287,19 @@ router.post(
       response.publishedDate = getDate();
 
       const savedArticle = await callArticleSaveApi(response);
-      //console.log("Saved", savedArticle);
+      console.log("article saved successfully", {
+        category: savedArticle.data.category,
+      });
       return res.status(200).json({
         success: true,
         msg: "Article Saved Successfully",
         response: savedArticle.data.category,
       });
     } catch (error) {
-      //console.log("This Error", error);
+      console.error("extractArticle route failed", {
+        message: error.message,
+        stack: error.stack,
+      });
       return res.status(500).json({
         success: false,
         error: error.message,
