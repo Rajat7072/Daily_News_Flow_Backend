@@ -35,6 +35,22 @@ const getBrowserExecutablePath = () => {
     );
   }
 
+  if (process.platform === "win32") {
+    candidates.push(
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files\\Chromium\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Chromium\\Application\\chrome.exe",
+    );
+  }
+
+  if (process.platform === "darwin") {
+    candidates.push(
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    );
+  }
+
   return candidates.find((candidate) => candidate && fs.existsSync(candidate));
 };
 
@@ -78,23 +94,21 @@ router.post(
 
       const browserExecutablePath = getBrowserExecutablePath();
 
-      if (!browserExecutablePath) {
-        throw new Error(
-          "No Chrome/Chromium executable found. Install Chromium or set PUPPETEER_EXECUTABLE_PATH.",
-        );
-      }
-
-      // Launch browser
-      browser = await puppeteer.launch({
+      const launchOptions = {
         headless: true,
-        executablePath: browserExecutablePath,
         args: [
           "--no-sandbox",
           "--disable-setuid-sandbox",
           "--disable-dev-shm-usage",
           "--disable-blink-features=AutomationControlled",
         ],
-      });
+      };
+
+      if (browserExecutablePath) {
+        launchOptions.executablePath = browserExecutablePath;
+      }
+
+      browser = await puppeteer.launch(launchOptions);
 
       const page = await browser.newPage();
 
@@ -177,13 +191,18 @@ router.post(
       const llm_prompt = `${extractArticlePrompt()}ARTICLE DATA:${JSON.stringify(cleanedArticle, null, 2)}`;
       // LLM
       let response = await llm(llm_prompt);
-      // Parse string response
+
       if (typeof response === "string") {
-        // Remove markdown code blocks if present
-        response = response
+        const cleaned = response
           .replace(/^```(?:json)?\s*\n?/, "")
-          .replace(/\n?```\s*$/, "");
-        response = JSON.parse(response);
+          .replace(/\n?```\s*$/, "")
+          .trim();
+
+        try {
+          response = JSON.parse(cleaned);
+        } catch (parseError) {
+          throw new Error(`LLM returned invalid JSON: ${parseError.message}`);
+        }
       }
 
       // Image generation
