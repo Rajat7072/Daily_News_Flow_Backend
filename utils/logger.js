@@ -4,6 +4,9 @@ const path = require("path");
 const logDir = path.join(__dirname, "..", "logs");
 const logFile = path.join(logDir, "backend.log");
 
+// Enable verbose logging for info/warn when DEBUG_LOGGING=true in .env
+const DEBUG = (process.env.DEBUG_LOGGING || "").toLowerCase() === "true";
+
 const ensureLogDir = () => {
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
@@ -34,15 +37,19 @@ const formatMessage = (level, message, meta) => {
 
 const writeLog = (level, message, meta) => {
   const formatted = formatMessage(level, message, meta);
-  ensureLogDir();
-  fs.appendFileSync(logFile, formatted);
 
-  if (level === "ERROR") {
-    console.error(formatted.trim());
-  } else if (level === "WARN") {
-    console.warn(formatted.trim());
-  } else {
-    console.log(formatted.trim());
+  // Always log errors. Info and warn only when DEBUG is enabled.
+  if (level === "ERROR" || DEBUG) {
+    ensureLogDir();
+    fs.appendFileSync(logFile, formatted);
+
+    if (level === "ERROR") {
+      console.error(formatted.trim());
+    } else if (level === "WARN") {
+      console.warn(formatted.trim());
+    } else {
+      console.log(formatted.trim());
+    }
   }
 };
 
