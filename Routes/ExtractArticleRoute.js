@@ -1,4 +1,5 @@
 const express = require("express");
+const fs = require("fs");
 const router = express.Router();
 const axios = require("axios");
 const { body, validationResult } = require("express-validator");
@@ -15,6 +16,27 @@ const extractArticlePrompt = require("../Ai/ExtractArticlePrompt");
 const llm = require("../Ai/llm");
 const generateImage = require("../Ai/generateImagePrompt");
 const uploadToCloudinary = require("../uploadImage/uploadImage");
+
+const getBrowserExecutablePath = () => {
+  const envPath = process.env.PUPPETEER_EXECUTABLE_PATH;
+  const candidates = [];
+
+  if (envPath) {
+    candidates.push(envPath);
+  }
+
+  if (process.platform === "linux") {
+    candidates.push(
+      "/usr/bin/chromium",
+      "/usr/bin/chromium-browser",
+      "/usr/bin/google-chrome",
+      "/usr/bin/google-chrome-stable",
+      "/snap/bin/chromium",
+    );
+  }
+
+  return candidates.find((candidate) => candidate && fs.existsSync(candidate));
+};
 
 const getDate = () => {
   const now = new Date();
@@ -54,10 +76,18 @@ router.post(
     try {
       const { url, Imgurl } = req.body;
 
+      const browserExecutablePath = getBrowserExecutablePath();
+
+      if (!browserExecutablePath) {
+        throw new Error(
+          "No Chrome/Chromium executable found. Install Chromium or set PUPPETEER_EXECUTABLE_PATH.",
+        );
+      }
+
       // Launch browser
       browser = await puppeteer.launch({
         headless: true,
-
+        executablePath: browserExecutablePath,
         args: [
           "--no-sandbox",
           "--disable-setuid-sandbox",
