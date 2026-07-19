@@ -188,12 +188,33 @@ router.post(
         "accept-language": "en-US,en;q=0.9",
       });
 
-      // Open page
-      await page.goto(url, {
-        waitUntil: "domcontentloaded",
-        timeout: 60000,
-      });
-      logger.info("page.goto succeeded", { url });
+      // Open page with retry to handle transient network/navigation timeouts
+      const maxGotoAttempts = 3;
+      let gotoSucceeded = false;
+      for (let attempt = 1; attempt <= maxGotoAttempts; attempt++) {
+        try {
+          await page.goto(url, {
+            waitUntil: "domcontentloaded",
+            timeout: 120000,
+          });
+          logger.info("page.goto succeeded", { url, attempt });
+          gotoSucceeded = true;
+          break;
+        } catch (err) {
+          logger.warn("page.goto attempt failed", {
+            url,
+            attempt,
+            message: err.message,
+          });
+          if (attempt < maxGotoAttempts) {
+            // backoff before retrying
+            await new Promise((res) => setTimeout(res, attempt * 2000));
+            continue;
+          }
+          // rethrow after final attempt
+          throw err;
+        }
+      }
 
       // Wait like human
       await new Promise((resolve) => setTimeout(resolve, 2000));
